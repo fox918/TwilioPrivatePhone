@@ -1,4 +1,5 @@
 import com.natpryce.konfig.*
+import com.natpryce.konfig.ConfigurationProperties.Companion.fromOptionalFile
 import com.twilio.twiml.VoiceResponse
 import com.twilio.twiml.voice.Dial
 import com.twilio.twiml.voice.Sip
@@ -12,11 +13,12 @@ import java.io.File
 
 fun main() {
     val mainNumber = Key("phone.mainNumber", stringType)
+    val backupNumber = Key("phone.backupNumber", stringType)
     val sipClientUrl = Key("phone.sipClientUrl", stringType)
 
     val config = EnvironmentVariables() overriding
-            ConfigurationProperties.fromFile(File("/etc/simplephone.properties")) overriding
-            ConfigurationProperties.fromResource("custom.properties") overriding
+            fromOptionalFile(File("/etc/simplephone.properties")) overriding
+            fromOptionalFile(File("custom.properties")) overriding
             ConfigurationProperties.fromResource("defaults.properties")
 
 
@@ -32,8 +34,12 @@ fun main() {
 
             get("/incoming/voice") {
                 val sip = Sip.Builder(config[sipClientUrl]).build();
-                val dial = Dial.Builder().sip(sip).answerOnBridge(true).build()
-                val respone = VoiceResponse.Builder().dial(dial).build()
+                val dialSipClient = Dial.Builder().sip(sip).answerOnBridge(true).build()
+                val dialBackup = Dial.Builder().number(config[backupNumber]).answerOnBridge(true).build()
+                val respone = VoiceResponse.Builder()
+                    .dial(dialSipClient)
+                    .dial(dialBackup)
+                    .build()
                 call.respondText(respone.toXml(), contentType = ContentType.Text.Xml)
             }
         }
