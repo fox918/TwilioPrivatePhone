@@ -5,7 +5,7 @@ plugins {
     application
 }
 
-group = "me.oliver"
+group = "me.personal.pbx"
 version = "1.0-SNAPSHOT"
 
 repositories {
