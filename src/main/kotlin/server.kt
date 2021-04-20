@@ -2,9 +2,10 @@ import com.natpryce.konfig.*
 import com.natpryce.konfig.ConfigurationProperties.Companion.fromOptionalFile
 import com.twilio.twiml.VoiceResponse
 import com.twilio.twiml.voice.Dial
-import com.twilio.twiml.voice.Sip
 import com.twilio.twiml.voice.Number
+import com.twilio.twiml.voice.Sip
 import io.ktor.application.*
+import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -22,10 +23,8 @@ fun main() {
             fromOptionalFile(File("custom.properties")) overriding
             ConfigurationProperties.fromResource("defaults.properties")
 
-
-
-
-    embeddedServer(Netty, port = 8080, host = "127.0.0.1") {
+    embeddedServer(Netty, port = 8080) {
+        install(DefaultHeaders)
         routing {
             get("/health") {
                 call.respond(HttpStatusCode.Found)
@@ -40,7 +39,8 @@ fun main() {
             get("/incoming/voice") {
                 val sip = Sip.Builder(config[sipClientUrl]).build()
                 val number = Number.Builder(config[backupNumber]).build()
-                val dialBoth = Dial.Builder().sip(sip).number(number).callerId(config[mainNumber]).answerOnBridge(true).build()
+                val dialBoth =
+                    Dial.Builder().sip(sip).number(number).callerId(config[mainNumber]).answerOnBridge(true).build()
                 val response = VoiceResponse.Builder()
                     .dial(dialBoth)
                     .build()

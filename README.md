@@ -32,6 +32,10 @@ Call control is configured to refer to ``/outgoing`` for *incoming* calls of the
 This is because *incoming* calls refers to calls coming in from the sip clients
 to the sip domain.
 
+### Docker bundling
+First assemble the runtime by running grade ``installDist`` and then bundle using docker
+``docker build -t personal-pbx .``
+
 
 
 
